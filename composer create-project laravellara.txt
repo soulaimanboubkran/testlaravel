@@ -1,0 +1,139 @@
+ composer create-project laravel/laravel Laravel
+
+php artisan make:model Evaluation -mcr
+
+
+ Schema::create('evaluations', function (Blueprint $table) {
+            $table->increments('id');
+            $table->decimal('note_controle', 5, 2);
+            $table->decimal('note_examen', 5, 2);
+            $table->decimal('moyenne', 5, 2);
+            $table->timestamps();
+        });
+
+
+  protected $fillable = ['note_controle', 'note_examen', 'moyenne'];
+
+
+
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Evaluation;
+use Illuminate\Http\Request;
+
+class EvaluationController extends Controller
+{
+    public function index()
+    {
+        $evaluations = Evaluation::all();
+        return view('evaluations.index', compact('evaluations'));
+    }
+
+    public function create()
+    {
+        return view('evaluations.create');
+    }
+
+    public function store(Request $request)
+    {
+        Evaluation::create($request->all());
+        return redirect()->route('evaluations.index');
+    }
+
+    public function edit($id)
+    {
+        $evaluation = Evaluation::find($id);
+        return view('evaluations.edit', compact('evaluation'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $evaluation = Evaluation::find($id);
+        $evaluation->update($request->all());
+        return redirect()->route('evaluations.index');
+    }
+
+    public function destroy($id)
+    {
+        Evaluation::find($id)->delete();
+        return redirect()->route('evaluations.index');
+    }
+}
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Évaluations</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container" style="margin-top: 50px;">
+        <h2>Liste des évaluations</h2>
+        <a href="{{ route('evaluations.create') }}" class="btn btn-primary">Nouvelle évaluation</a>
+        <br><br>
+
+        <table class="table table-bordered">
+            <tr>
+                <th>ID</th>
+                <th>Contrôle</th>
+                <th>Examen</th>
+                <th>Moyenne</th>
+                <th>Actions</th>
+            </tr>
+            @foreach($evaluations as $evaluation)
+            <tr>
+                <td>{{ $evaluation->id }}</td>
+                <td>{{ $evaluation->note_controle }}</td>
+                <td>{{ $evaluation->note_examen }}</td>
+                <td>{{ $evaluation->moyenne }}</td>
+                <td>
+                    <a href="{{ route('evaluations.edit', $evaluation->id) }}" class="btn btn-sm btn-info">Modifier</a>
+                    <form action="{{ route('evaluations.destroy', $evaluation->id) }}" method="POST" style="display:inline;">
+                        {{ csrf_field() }}
+                        {{ method_field('DELETE') }}
+                        <button type="submit" class="btn btn-sm btn-danger">Supprimer</button>
+                    </form>
+                </td>
+            </tr>
+            @endforeach
+        </table>
+    </div>
+</body>
+</html>
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Modifier évaluation</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container" style="margin-top: 50px;">
+        <h2>Modifier l'évaluation</h2>
+
+        <form action="{{ route('evaluations.update', $evaluation->id) }}" method="POST">
+            {{ csrf_field() }}
+            {{ method_field('PUT') }}
+
+            <div class="form-group">
+                <label>Note contrôle</label>
+                <input type="number" name="note_controle" class="form-control" step="0.01" value="{{ $evaluation->note_controle }}">
+            </div>
+
+            <div class="form-group">
+                <label>Note examen</label>
+                <input type="number" name="note_examen" class="form-control" step="0.01" value="{{ $evaluation->note_examen }}">
+            </div>
+
+            <button type="submit" class="btn btn-warning">Mettre à jour</button>
+            <a href="{{ route('evaluations.index') }}" class="btn btn-default">Annuler</a>
+        </form>
+    </div>
+</body>
+</html>
